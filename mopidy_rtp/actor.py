@@ -170,7 +170,7 @@ class RtpBackend(pykka.ThreadingActor, backend.Backend):
         self.playback = RtpPlaybackProvider(audio=audio, backend=self)
         self.uri_schemes = ['rtp']
         self.hostname = network.format_hostname(self.config['hostname'])
-        source.subscribe_port = self.port = self.config['port']
+        self.port = self.config['port']
         self.sock = None
         self.services = {}
         self.event_sources = {}
