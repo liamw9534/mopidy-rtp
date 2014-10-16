@@ -213,7 +213,7 @@ class RtpBackend(pykka.ThreadingActor, backend.Backend):
             logger.info('RTP broadcast running on [%s]:%s', broadcast_addr,
                         self.config['broadcast_port'])
         msg = self.config['station_name'].replace('%hostname', self.config['hostname'])
-        msg = msg.replace('%port', self.config['port'])
+        msg = msg.replace('%port', str(self.config['port']))
         self.sock.sendto(msg, (broadcast_addr, self.config['broadcast_port']))
         tag = gobject.timeout_add(int(self.broadcast_period * 1000),
                                   self._broadcast_service_info)
