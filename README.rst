@@ -58,7 +58,7 @@ Configuration
 Extension
 ---------
 
-Add the following section to your Mopidy configuration file following installation:
+Add the following section to your Mopidy configuration file following installation::
 
     [rtp]
     enabled = true
@@ -69,9 +69,9 @@ Add the following section to your Mopidy configuration file following installati
     station_name = Mopidy RTP Service on %hostname:%port
 
 
-The `hostname` setting should be the IP address of the network interface you wish to designate
-for RTP traffic.  For example, if you have two ethernet adapters, say, one wired on 192.168.1.0/24
-and one wireless on 192.168.0.0/24 then select the IP address of the interface on which you wish your
+The ``hostname`` setting should be the IP address of the network interface you wish to designate
+for RTP traffic.  For example, if you have two ethernet adapters, say, one wired on ``192.168.1.0/24``
+and one wireless on ``192.168.0.0/24`` then select the IP address of the interface on which you wish your
 RTP traffic to be streamed and visible to other peers.  All peers should select the same network to
 ensure they are visible to one another.
 
@@ -80,20 +80,20 @@ other peers of its presence (note: a peer is any other Mopidy system running thi
 packets are sent on the port number defined by the property `broadcast_port`.  The backend will also keep
 track of a list of all peers it has discovered by listening on the broadcast port.
 
-The list of available peers can be browsed using the URI 'rtp:stations' via the backend.  This will
+The list of available peers can be browsed using the URI ``rtp:stations`` via the backend.  This will
 return a list of track references that denote the available stations.  Each station is denoted by
 a URI and a station name.  The station name is defined via the `station_name` property and the URI is
-derived from the `hostname` property.  For example, a track reference with a URI of 'rtp:192.168.0.118'
-would mean that a peer was discovered from IP address `192.168.0.118`.
+derived from the ``hostname`` property.  For example, a track reference with a URI of ``rtp:192.168.0.118``
+would mean that a peer was discovered from IP address ``192.168.0.118``.
 
 A station on any discovered peer can be played by selecting its URI to play.  The client backend
 will firstly subscribe to that station by contacting the peer on its "subscriber" TCP port, which is
-defined via the `port` property, and requesting that the peer streams to a client allocated UDP
+defined via the ``port`` property, and requesting that the peer streams to a client allocated UDP
 port number.  This port number is randomly assigned by the client, from the list of free ports.  Upon
 receiving the request, the peer will begin to stream UDP packets to the client on the requested
 UDP port.
 
-The backend permits multiple clients simultaneously.  The property `max_subscribers` allows this
+The backend permits multiple clients simultaneously.  The property ``max_subscribers`` allows this
 to be limited to a sensible number thus avoiding network bandwidth and/or CPU overload.
 
 
@@ -114,7 +114,7 @@ v0.1.0 (UNRELEASED)
 
 - Initial cut with some limitations:
 
-i) Requires optimization of RTP sink to avoid duplication of entire pipeline for each connected client.
-ii) If a peer pauses its station and then resumes, listening clients do not resume.
-iii) It is possible to get into silly situations e.g., two peers subscribing to each other's station.
+1) Requires optimization of RTP sink to avoid duplication of entire pipeline for each connected client.
+2) If a peer pauses its station and then resumes, listening clients do not resume.
+3) It is possible to get into silly situations e.g., two peers subscribing to each other's station.
 This is permitted but may result in a nasty feedback loop or no output at all, so apply caution.
