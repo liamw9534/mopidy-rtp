@@ -77,12 +77,12 @@ ensure they are visible to one another.
 
 Once the backend has started it will begin to broadcast, periodically, a discovery packet which informs
 other peers of its presence (note: a peer is any other Mopidy system running this backend).  These
-packets are sent on the port number defined by the property `broadcast_port`.  The backend will also keep
+packets are sent on the port number defined by the property ``broadcast_port``.  The backend will also keep
 track of a list of all peers it has discovered by listening on the broadcast port.
 
 The list of available peers can be browsed using the URI ``rtp:stations`` via the backend.  This will
 return a list of track references that denote the available stations.  Each station is denoted by
-a URI and a station name.  The station name is defined via the `station_name` property and the URI is
+a URI and a station name.  The station name is defined via the ``station_name`` property and the URI is
 derived from the ``hostname`` property.  For example, a track reference with a URI of ``rtp:192.168.0.118``
 would mean that a peer was discovered from IP address ``192.168.0.118``.
 
