@@ -116,5 +116,4 @@ v0.1.0 (UNRELEASED)
 
 1) Requires optimization of RTP sink to avoid duplication of entire pipeline for each connected client.
 2) If a peer pauses its station and then resumes, listening clients do not resume.
-3) It is possible to get into silly situations e.g., two peers subscribing to each other's station.
-This is permitted but may result in a nasty feedback loop or no output at all, so apply caution.
+3) It is possible to get into silly situations e.g., two peers subscribing to each other's station.  This is permitted but may result in a nasty feedback loop or no output at all, so apply caution.
