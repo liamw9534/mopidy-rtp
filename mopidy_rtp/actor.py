@@ -183,8 +183,7 @@ class RtpBackend(pykka.ThreadingActor, backend.Backend):
     def _start_rtp_session(self, host, port):
         if (len(self.subscribers) < self.config['max_subscribers']):
             self.subscribers.append((host, port))
-            self.audio.add_sink(RtpBackend._audio_sink_name(host, port),
-                                RtpSink(host, port))
+            self.sink.add(host, port)
             return True
         else:
             return False
@@ -193,7 +192,7 @@ class RtpBackend(pykka.ThreadingActor, backend.Backend):
         host = host.split(':')[-1]
         if ((host, port) in self.subscribers):
             self.subscribers.remove((host, port))
-            self.audio.remove_sink(RtpBackend._audio_sink_name(host, port))
+            self.sink.remove(host, port)
         else:
             logger.warn('Subscriber %s:%s can not be removed - not in subscriber list', host, port)
 
@@ -261,14 +260,18 @@ class RtpBackend(pykka.ThreadingActor, backend.Backend):
 
     def on_start(self):
         if (self.sock is None):
+            self.sink = RtpSink()
+            self.audio.add_sink('rtp:sink', self.sink)
             self._start_rtp_client_server()
             self._broadcast_service_info()
 
     def on_stop(self):
-        self._deregister_event_sources()
-        self._stop_rtp_client_server()
-        for s in self.subscribers:
-            self._stop_rtp_session(s[0], s[1])
-            self.subscribers.remove(s)
-        self.sock = None
-        self.services = {}
+        if (self.sock is not None):
+            self._deregister_event_sources()
+            self._stop_rtp_client_server()
+            for s in self.subscribers:
+                self._stop_rtp_session(s[0], s[1])
+            self.audio.remove_sink('rtp:sink')
+            self.sock = None
+            self.services = {}
+            self.sink = None

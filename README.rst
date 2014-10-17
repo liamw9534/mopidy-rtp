@@ -47,7 +47,7 @@ is playing is simply viewed as a constant stream with occasional pauses between 
 that it plays.  To the peer listener, this is just really just like listening to a radio station.
 
 The underpinning technology for this extension is based around using RTP to encapsulate packets
-that have been encoded (using SBC codec).  Each packet is transmitted using UDP unicast -
+that have been encoded (using FLAC lossless codec).  Each packet is transmitted using UDP unicast -
 the reason for unicast is because multicast does not work on WiFi networks (owing to limitations
 of WiFi in how multicast is handled).
 
@@ -114,6 +114,5 @@ v0.1.0 (UNRELEASED)
 
 - Initial cut with some limitations:
 
-1) Requires optimization of RTP sink to avoid duplication of entire pipeline for each connected client.
-2) If a peer pauses its station and then resumes, listening clients do not resume.
-3) It is possible to get into silly situations e.g., two peers subscribing to each other's station.  This is permitted but may result in a nasty feedback loop or no output at all, so apply caution.
+1) If a peer pauses its station and then resumes, listening clients do not resume.
+2) It is possible to get into silly situations e.g., two peers subscribing to each other's station.  This is permitted but may result in a nasty feedback loop or no output at all, so apply caution.

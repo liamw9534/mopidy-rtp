@@ -23,12 +23,12 @@ class RTPSource(gst.Bin, gst.URIHandler):
             media=(string)application,
             clock-rate=(int)90000,
             encoding-name=(string)X-GST,
-            caps=(string)YXVkaW8veC1zYmMsIHJhdGU9KGludCk0NDEwMCwgY2hhbm5lbHM9KGludCkyLCBtb2RlPShzdHJpbmcpam9pbnQsIGJsb2Nrcz0oaW50KTE2LCBzdWJiYW5kcz0oaW50KTgsIGFsbG9jYXRpb249KHN0cmluZylsb3VkbmVzcywgYml0cG9vbD0oaW50KTY0
+            caps=(string)"YXVkaW8veC1mbGFjLCBjaGFubmVscz0oaW50KTIsIHJhdGU9KGludCk0NDEwMCwgc3RyZWFtaGVhZGVyPShidWZmZXIpPCA3ZjQ2NGM0MTQzMDEwMDAwMDI2NjRjNjE0MzAwMDAwMDIyMTIwMDEyMDAwMDAwMDAwMDAwMDAwYWM0NDJmMDAwYmZjN2I0MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAsIDg0MDAwMDI4MjAwMDAwMDA3MjY1NjY2NTcyNjU2ZTYzNjUyMDZjNjk2MjQ2NGM0MTQzMjAzMTJlMzIyZTMxMjAzMjMwMzAzNzMwMzkzMTM3MDAwMDAwMDAgPg\\=\\=\"
         '''
         udpsrc = gst.element_factory_make('udpsrc')
         jitbuf = gst.element_factory_make('gstrtpjitterbuffer')
         depay = gst.element_factory_make('rtpgstdepay')
-        dec = gst.element_factory_make('sbcdec')
+        dec = gst.element_factory_make('flacdec')
         udpsrc.set_property('port', port)
         udpsrc.set_property('caps', gst.Caps(caps))
         jitbuf.set_property('mode', 0)
