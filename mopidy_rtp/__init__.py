@@ -24,6 +24,9 @@ class Extension(ext.Extension):
         schema['broadcast_port'] = config.Integer(minimum=1, maximum=65535)
         schema['max_subscribers'] = config.Integer(minimum=1)
         schema['station_name'] = config.String()
+        schema['caps'] = config.String()
+        schema['encoder'] = config.String()
+        schema['decoder'] = config.String()
         return schema
 
     def validate_environment(self):

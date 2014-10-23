@@ -8,7 +8,7 @@ import socket
 from mopidy import backend
 from mopidy import exceptions
 from mopidy import models
-from sink import RtpSink
+from . import sink
 from session import RtpClientSession
 from . import source
 
@@ -50,7 +50,6 @@ class RtpLibraryProvider(backend.LibraryProvider):
     root_directory = models.Ref.directory(uri='rtp:', name='RTP')
 
     def browse(self, uri):
-        logger.info('Browsing using uri: %s', uri)
         return [models.Ref.track(uri=make_uri(a), name=self.backend.services[a]) for a in self.backend.services.keys()]
 
     def lookup(self, uri):
@@ -84,14 +83,18 @@ class RtpPlaybackProvider(backend.PlaybackProvider):
             s.bind((self.backend.hostname, 0))
             port = s.getsockname()[1]
             s.close()
-            # Connect to server to subscribe to stream on our port
-            # TODO: !!! Handle RTP server protocol error responses !!!
+            # Connect to server to subscribe to stream on our alloc'd port
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.connect((host, self.subscribe_port))
-            msg = 'subscribe %d\n' % port
+            resp = s.recv(1024)
+            logger.debug('Connection Reply: %s', resp)
+            msg = 'SUBSCRIBE %d\n' % port
             s.send(msg)
+            resp = s.recv(1024)
+            logger.debug('Subscribe Reply: %s', resp)
             s.close()
-            return port
+            if (resp.rstrip() == 'ERROR_OK'):
+                return port
         except:
             pass
 
@@ -99,12 +102,19 @@ class RtpPlaybackProvider(backend.PlaybackProvider):
         try:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.connect((host, self.subscribe_port))
-            msg = 'unsubscribe %d\n' % port
+            resp = s.recv(1024)
+            logger.debug('Connection Reply: %s', resp)
+            msg = 'UNSUBSCRIBE %d\n' % port
             s.send(msg)
+            resp = s.recv(1024)
+            logger.debug('Unsubscribe Reply: %s', resp)
             s.close()
-            return True
+            if (resp.rstrip() == 'ERROR_OK'):
+                return True
         except:
-            return False
+            pass
+
+        return False
 
     def change_track(self, track):
         if (track.uri != self.uri):
@@ -133,7 +143,7 @@ class RtpPlaybackProvider(backend.PlaybackProvider):
 
     def pause(self):
         return False
-    
+
     def resume(self):
         return False
 
@@ -175,6 +185,9 @@ class RtpBackend(pykka.ThreadingActor, backend.Backend):
         self.services = {}
         self.event_sources = {}
         self.subscribers = []
+        source.decoder = self.config['decoder']
+        source.caps_string = self.config['caps']
+        sink.encoder = self.config['encoder']
 
     @staticmethod
     def _audio_sink_name(host, port):
@@ -260,7 +273,7 @@ class RtpBackend(pykka.ThreadingActor, backend.Backend):
 
     def on_start(self):
         if (self.sock is None):
-            self.sink = RtpSink()
+            self.sink = sink.RtpSink()
             self.audio.add_sink('rtp:sink', self.sink)
             self._start_rtp_client_server()
             self._broadcast_service_info()

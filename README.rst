@@ -30,7 +30,6 @@ Install by running::
 Or, if available, install the Debian/Ubuntu package from `apt.mopidy.com
 <http://apt.mopidy.com/>`_.
 
-
 Introduction
 ============
 
@@ -47,8 +46,8 @@ is playing is simply viewed as a constant stream with occasional pauses between 
 that it plays.  To the peer listener, this is just really just like listening to a radio station.
 
 The underpinning technology for this extension is based around using RTP to encapsulate packets
-that have been encoded (using FLAC lossless codec).  Each packet is transmitted using UDP unicast -
-the reason for unicast is because multicast does not work on WiFi networks (owing to limitations
+that have been encoded (using FLAC).  Each packet is transmitted using UDP unicast -
+the reason for unicast is because multicast is very poor on WiFi networks (owing to limitations
 of WiFi in how multicast is handled).
 
 
@@ -67,6 +66,9 @@ Add the following section to your Mopidy configuration file following installati
     broadcast_port = 46986
     max_subscribers = 8
     station_name = Mopidy RTP Service on %hostname:%port
+    encoder = flacenc
+    decoder = flacdec
+    caps = <RTP X-GST encapsulated caps string>
 
 
 The ``hostname`` setting should be the IP address of the network interface you wish to designate
@@ -97,12 +99,56 @@ The backend permits multiple clients simultaneously.  The property ``max_subscri
 to be limited to a sensible number thus avoiding network bandwidth and/or CPU overload.
 
 
+Audio codecs in GStreamer
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The audio RTP payload, by default, uses FLAC (Free Lossless Audio Codec) which is extremely good
+at compressing CD quality (44.1Khz, stereo) streams using very few CPU MIPs.  It is the best codec
+I have found in my research, without using any hardware acceleration support.
+
+The default codec can be changed as part of the extension properties (using the
+settings ``encoder``, ``decoder`` and ``caps``) but you need to keep in mind that
+not all GStreamer audio codecs can support encoding of streams which potentially
+may contain pause and seek events.  Moreover, some decoders are really only designed
+to work on local files rather than "live" streams which could contain corrupted or
+out-of-sequence data.
+
+In general, the only way to check out which codecs are suitable is to review the source code
+and test them out.
+
+The FLAC plugin, provided as standard with GStreamer distributions, does
+not handle pause or seek operations in its encoder and also the decoder does not handle
+error conditions, such as bad FLAC headers.  These things tend to trip-up and stop the pipeline,
+which is obviously undesirable.  However, I have modified the default FLAC encoder and
+decoder source code to support the ability to flush and restart the encoder whenever a pause
+or seek operation is performed.  Moreover, decoder errors are handled more gracefully
+without causing the pipeline to stop but keep running.
+
+I will make this source code available for others to use at some time in the future.
+
+
+Maximum subscribers
+~~~~~~~~~~~~~~~~~~~
+
+This will depend heavily on CPU architecture.  On a standard Rpi (model B @ 1GHz) playing
+a 44.1KHz track, streamed from Spotify, I am able to connect 8 subscribers to a single
+Rpi box.  This uses approx 6Mbps network bandwdith to stream to all subscribers and loads
+the CPU to approx 80%.
+
+
 Project resources
 =================
 
 - `Source code <https://github.com/liamw9534/mopidy-rtp>`_
 - `Issue tracker <https://github.com/liamw9534/mopidy-rtp/issues>`_
 - `Download development snapshot <https://github.com/liamw9534/mopidy-rtp/archive/master.tar.gz#egg=mopidy-rtp-dev>`_
+
+Modified FLAC Codec
+~~~~~~~~~~~~~~~~~~~
+
+This will be released here at some point in the future::
+
+- `Source code <https://github.com/liamw9534/flac>`_
 
 
 Changelog
@@ -112,7 +158,6 @@ Changelog
 v0.1.0 (UNRELEASED)
 ----------------------------------------
 
-- Initial cut with some limitations:
-
-1) If a peer pauses its station and then resumes, listening clients do not resume.
-2) It is possible to get into silly situations e.g., two peers subscribing to each other's station.  This is permitted but may result in a nasty feedback loop or no output at all, so apply caution.
+- Supports local networked sharing of music via RTP with configurable GStreamer codec option.
+- Restricted to using RTP application type X-GST i.e., GStreamer peers only.  You won't be
+able to play with other music players (e.g., mplayer) as this isn't the intention of the plugin.

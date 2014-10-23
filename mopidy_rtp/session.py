@@ -36,21 +36,18 @@ class RtpClientSession(network.LineProtocol):
         logger.info('Request from [%s]:%s: %s', self.host, self.port, line)
 
         tokens = line.split(' ')
-        response = None
-        if (len(tokens) == 2 and tokens[0] == 'subscribe'):
+        response = ['ERROR_OK']
+        if (len(tokens) == 2 and tokens[0] == 'SUBSCRIBE'):
             port = int(tokens[1])
             host = self.host.split(':')[-1]
             ret = self.backend._start_rtp_session(host, port)
             if (not ret):
-                response = 'error subscriber_limit_reached'
-        elif (len(tokens) == 2 and tokens[0] == 'unsubscribe'):
+                response = ['ERROR_SUBSCRIBER_LIMIT_REACHED']
+        elif (len(tokens) == 2 and tokens[0] == 'UNSUBSCRIBE'):
             port = int(tokens[1])
             self.backend._stop_rtp_session(self.host, port)
         else:
-            response = 'error unrecognized_command'
-
-        if not response:
-            return
+            response = ['ERROR_UNRECOGNIZED_COMMAND']
 
         logger.debug(
             'Response to [%s]:%s: %s', self.host, self.port,

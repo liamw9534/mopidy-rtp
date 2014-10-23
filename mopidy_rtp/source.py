@@ -5,6 +5,15 @@ import gobject
 
 gobject.threads_init ()
 
+import logging
+
+logger = logging.getLogger(__name__)
+
+# These variables are globals that is set by the Backend
+# during initialization from the extension properties
+caps_string = 'YXVkaW8veC1yYXctaW50LCBlbmRpYW5uZXNzPShpbnQpMTIzNCwgc2lnbmVkPShib29sZWFuKXRydWUsIHdpZHRoPShpbnQpMTYsIGRlcHRoPShpbnQpMTYsIHJhdGU9KGludCk0NDEwMCwgY2hhbm5lbHM9KGludCky,' 
+decoder = 'identity'
+
 
 class RTPSource(gst.Bin, gst.URIHandler):
     __gstdetails__ = ('RTPSource',
@@ -18,17 +27,20 @@ class RTPSource(gst.Bin, gst.URIHandler):
         return int(uri.split('/')[-1])
 
     def _launch_rtp_bin(self, port):
-        caps = '''
-            application/x-rtp,
+        # The capstring is a configured property of the extension
+        caps = '''application/x-rtp,
             media=(string)application,
             clock-rate=(int)90000,
             encoding-name=(string)X-GST,
-            caps=(string)"YXVkaW8veC1mbGFjLCBjaGFubmVscz0oaW50KTIsIHJhdGU9KGludCk0NDEwMCwgc3RyZWFtaGVhZGVyPShidWZmZXIpPCA3ZjQ2NGM0MTQzMDEwMDAwMDI2NjRjNjE0MzAwMDAwMDIyMTIwMDEyMDAwMDAwMDAwMDAwMDAwYWM0NDJmMDAwYmZjN2I0MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAsIDg0MDAwMDI4MjAwMDAwMDA3MjY1NjY2NTcyNjU2ZTYzNjUyMDZjNjk2MjQ2NGM0MTQzMjAzMTJlMzIyZTMxMjAzMjMwMzAzNzMwMzkzMTM3MDAwMDAwMDAgPg\\=\\=\"
-        '''
+            caps=(string)'''
+        # Append the actual caps string configured
+        caps += str(caps_string)
+        logger.debug('Using caps: %s', caps)
+        logger.debug('Using decoder: %s', decoder)
         udpsrc = gst.element_factory_make('udpsrc')
         jitbuf = gst.element_factory_make('gstrtpjitterbuffer')
         depay = gst.element_factory_make('rtpgstdepay')
-        dec = gst.element_factory_make('flacdec')
+        dec = gst.element_factory_make(decoder)
         udpsrc.set_property('port', port)
         udpsrc.set_property('caps', gst.Caps(caps))
         jitbuf.set_property('mode', 0)
@@ -62,5 +74,7 @@ class RTPSource(gst.Bin, gst.URIHandler):
         return self.uri
 
 
+# We must register the plugin to ensure it is found
+# when playbin wants to stream URIs of the form rtp://
 gobject.type_register(RTPSource)                   
-gst.element_register (RTPSource, 'rtpsrc', gst.RANK_MARGINAL)
+gst.element_register(RTPSource, 'rtpsrc', gst.RANK_MARGINAL)
